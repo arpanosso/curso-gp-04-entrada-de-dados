@@ -6,4 +6,4 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-## Exemplo de entrada de dados
+## Entrada de dados

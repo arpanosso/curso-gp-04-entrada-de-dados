@@ -33,3 +33,7 @@
 #### 6.6) Resumo das colunas.
 
 #### 6.7) Convertendo o df para uma `tibble`.
+
+### 7) Lendo o arquivo `.xlsx`, e salvando em um objeto no R (data.frame).
+
+### 8) Lendo os arquivos `.csv`, que se encontram dentro da pasta CSV.

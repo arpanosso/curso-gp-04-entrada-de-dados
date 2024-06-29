@@ -6,7 +6,9 @@ output: github_document
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
+  collapse = TRUE, 
+  eval = FALSE,
+  echo = FALSE,
   comment = "#>"
 )
 ```
@@ -16,6 +18,122 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-## Entrada de dados
+# Entrada de dados
 
+### 1) Carregando os pacotes necessários.
+
+```{r}
+library(tidyverse)
+```
+
+### 2) Listando arquivos em uma pasta.
+
+```{r}
+list.files("data-raw", full.names = TRUE)
+```
+
+### 3) Listando tipos específicos de arquivos. Exemplo `.txt`.
+
+```{r}
+list.files("data-raw", 
+           full.names = TRUE,
+           pattern = ".txt")
+```
+
+### 4) Lendo o arquivo `.txt`, e salvando em um objeto no R (data.frame).
+
+```{r}
+df <- read.table("data-raw/biomassaRad.txt",
+           h = TRUE,
+           sep = "\t",
+           dec = ".")
+```
+
+### 5) Visualizando partes do arquivo.
+
+```{r}
+head(df)
+```
+```{r}
+tail(df)
+```
+
+### 6) Propriedades do objeto `df`.
+
+#### 6.1) Número de linhas.
+
+```{r}
+nrow(df)
+```
+
+#### 6.2) Número de colunas.
+
+```{r}
+ncol(df)
+```
+
+#### 6.3) Tipo e classe do objeto.
+
+```{r}
+mode(df)
+class(df)
+```
+
+#### 6.4) Estrutura do objeto.
+
+```{r}
+str(df)
+```
+
+#### 6.5) Vislumbre dos dados das colunas.
+
+```{r}
+glimpse(df)
+```
+
+#### 6.6) Resumo das colunas.
+
+```{r}
+skimr::skim(df)
+```
+
+#### 6.7) Convertendo o df para uma `tibble`.
+
+```{r}
+df_t <- as_tibble(df)
+df_t
+```
+
+### 7) Lendo o arquivo `.xlsx`, e salvando em um objeto no R (data.frame).
+
+```{r}
+df_xlsx <- readxl::read_xlsx("data-raw/anomalias_classes.xlsx")
+df_xlsx
+```
+
+### 8) Lendo os arquivos `.csv`, que se encontram dentro da pasta CSV.
+
+```{r}
+list.files("data-raw/",
+           full.names = TRUE,
+           pattern = ".csv",
+           recursive = TRUE)
+```
+
+```{r}
+
+ <- list.files("data-raw",
+           full.names = TRUE,
+           pattern = ".csv",
+           recursive = TRUE)
+
+
+my_file_read <- function(path){
+  readr::read_csv(path) %>% 
+    mutate(diretory = path) %>% 
+    janitor::clean_names()
+} 
+dff <- map_df(list_files,my_file_read)
+glimpse(dff)
+```
 

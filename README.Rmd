@@ -6,9 +6,8 @@ output: github_document
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE, 
-  eval = FALSE,
-  echo = FALSE,
+  collapse = TRUE, message = FALSE,
+  warning = FALSE, erro = FALSE,
   comment = "#>"
 )
 ```
@@ -18,122 +17,106 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-# Entrada de dados
+# Exercicios 
 
-### 1) Carregando os pacotes necessários.
-
+Carregando os pacotes
 ```{r}
 library(tidyverse)
 ```
 
-### 2) Listando arquivos em uma pasta.
+Selecionando os arquivos que começam com um número e terminam com ".xlsx"
 
 ```{r}
-list.files("data-raw", full.names = TRUE)
-```
-
-### 3) Listando tipos específicos de arquivos. Exemplo `.txt`.
-
-```{r}
-list.files("data-raw", 
+lista_relatorios <- list.files("data-raw",
            full.names = TRUE,
-           pattern = ".txt")
+           recursive = TRUE,
+           pattern = "^[0-9].*xlsx$")
+lista_relatorios
 ```
 
-### 4) Lendo o arquivo `.txt`, e salvando em um objeto no R (data.frame).
+observe que a expressão regular `^[0-9].*xlsx$` é usada para corresponder a nomes de arquivos que começam com um dígito e terminam com a extensão ".xlsx".
+
+`^`: Indica o início da linha. Garante que a correspondência comece desde o primeiro caractere da linha.
+`[0-9]`: Corresponde a qualquer dígito de $0$ a $9$. Isso significa que o primeiro caractere do texto deve ser um dígito.
+
+`.*`: Corresponde a zero ou mais ocorrências de qualquer caractere, permitindo que qualquer sequência de caracteres siga o dígito inicial.
+
+`xlsx`: Literalmente corresponde à sequência de caracteres "xlsx".
+
+`$`: Indica o final da linha. Garante que "xlsx" seja o final do texto.
+
+Agora podemos carregar os arquivos, utilizando a função `map`, a lista de arquivos e a função read_xlsx do pacote readxl (`readxl::read_xlsx`).
 
 ```{r}
-df <- read.table("data-raw/biomassaRad.txt",
-           h = TRUE,
-           sep = "\t",
-           dec = ".")
+dados <- map_df(lista_relatorios, readxl::read_xlsx) %>% 
+  janitor::clean_names()
 ```
+A função "clean_names()" do pacote "janitor" limpa e padroniza os nomes das colunas, retirando acentuações, caracteres especiais e passando as letras para todas em minúsculas, substitui espaços por underscores e garante que todos os nomes de colunas sejam únicos.
 
-### 5) Visualizando partes do arquivo.
+## 1- Qual a lista de Clientes dessa empresa?
 
 ```{r}
-head(df)
-```
-```{r}
-tail(df)
+dados %>% distinct(nome_cliente)
 ```
 
-### 6) Propriedades do objeto `df`.
 
-#### 6.1) Número de linhas.
+## 2- Qual a lista de Vendedores por Localidade?
+
 
 ```{r}
-nrow(df)
+dados %>% 
+  group_by(centro_distribuicao ) %>% 
+  distinct(nome_representante) %>% 
+  arrange(centro_distribuicao)
 ```
 
-#### 6.2) Número de colunas.
+## 3- Qual produto mais vendido por estado?
+
+
+Listando as localidades
+```{r}
+dados %>% 
+  pull(localidade) %>% 
+  unique()
+```
+
+
+Substituindo o nome da localidade no filter, para encontrar os mais vendidos em cada localidade.
 
 ```{r}
-ncol(df)
+dados %>% 
+  filter(localidade =="São Paulo-SP") %>% 
+  group_by(nome_produto) %>% #agrupo por produto
+  summarise(
+    total_vendido = sum(quantidade_vendida) #soma por produto
+  ) %>% 
+  arrange(desc(total_vendido)) %>% #ordena dados do maior para o menor total vendido
+  slice(1) # Seleciona a primeira linha do data frame.
 ```
 
-#### 6.3) Tipo e classe do objeto.
+
+
+## 4- Criar histograma para valor total de vendas.
 
 ```{r}
-mode(df)
-class(df)
+dados %>% 
+  ggplot(aes(x = valor_total_venda)) +
+  geom_histogram(bins = 50, 
+                 color = "black",
+                 fill="grey") + 
+  theme_bw()
 ```
 
-#### 6.4) Estrutura do objeto.
+
+## 5 - Criar o boxplot por Localidade
 
 ```{r}
-str(df)
+dados %>% 
+  ggplot(aes(x = valor_total_venda, y = localidade, fill = localidade)) +
+  geom_boxplot() + 
+  theme_bw() +
+  scale_fill_brewer()
 ```
 
-#### 6.5) Vislumbre dos dados das colunas.
 
-```{r}
-glimpse(df)
-```
-
-#### 6.6) Resumo das colunas.
-
-```{r}
-skimr::skim(df)
-```
-
-#### 6.7) Convertendo o df para uma `tibble`.
-
-```{r}
-df_t <- as_tibble(df)
-df_t
-```
-
-### 7) Lendo o arquivo `.xlsx`, e salvando em um objeto no R (data.frame).
-
-```{r}
-df_xlsx <- readxl::read_xlsx("data-raw/anomalias_classes.xlsx")
-df_xlsx
-```
-
-### 8) Lendo os arquivos `.csv`, que se encontram dentro da pasta CSV.
-
-```{r}
-list.files("data-raw/",
-           full.names = TRUE,
-           pattern = ".csv",
-           recursive = TRUE)
-```
-
-```{r}
-
- list_files <- list.files("data-raw",
-           full.names = TRUE,
-           pattern = ".csv",
-           recursive = TRUE)
-
-
-my_file_read <- function(path){
-  readr::read_csv(path) %>% 
-    mutate(diretory = path) %>% 
-    janitor::clean_names()
-} 
-dff <- map_df(list_files,my_file_read)
-glimpse(dff)
-```
-
+## 6 - Criar o Gráfico de TOTAL DE VENDAS por ESTADO (desafio)
